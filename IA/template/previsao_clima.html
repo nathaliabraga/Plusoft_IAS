@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previsão do Clima</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0f7fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #00796b;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin-top: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #00796b;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #004d40;
+            color: white;
+        }
+
+        td {
+            background-color: #b2dfdb;
+        }
+
+        #cidadeForm {
+            margin-top: 20px;
+        }
+
+        #cidade-select {
+            margin-bottom: 15px;
+        }
+
+        .alerta {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Previsão do Clima</h1>
+
+    <form id="cidadeForm">
+        <label for="cidade">Digite o nome da cidade:</label>
+        <input type="text" id="cidade-input" placeholder="Ex: São Paulo">
+        <button type="button" id="buscarCidades">Buscar Cidades</button>
+    </form>
+
+    <select id="cidade-select" style="display:none;">
+        <!-- As opções de cidades serão inseridas aqui -->
+    </select>
+    <button type="button" id="buscarClima" style="display:none;">Buscar Previsão</button>
+
+    <div id="weatherResult">
+        <table id="weatherTable" style="display:none;">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Temperatura Mínima</th>
+                    <th>Temperatura Máxima</th>
+                    <th>Umidade</th>
+                    <th>Alerta</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- API Data will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('buscarCidades').addEventListener('click', function () {
+            const cidade = document.getElementById('cidade-input').value.trim();
+
+            if (!cidade) {
+                alert("Por favor, insira o nome da cidade.");
+                return;
+            }
+
+            fetch('/buscar_cidades', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cidade: cidade })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const cidadeSelect = document.getElementById('cidade-select');
+                    cidadeSelect.innerHTML = '';
+
+                    if (data.cidades && data.cidades.length > 0) {
+                        data.cidades.forEach(cidade => {
+                            const option = document.createElement('option');
+                            option.value = cidade.id;
+                            option.textContent = `${cidade.name}, ${cidade.state}`;
+                            cidadeSelect.appendChild(option);
+                        });
+
+                        cidadeSelect.style.display = 'block';
+                        document.getElementById('buscarClima').style.display = 'block';
+                    } else {
+                        alert(data.error || "Nenhuma cidade encontrada.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar cidades:', error);
+                    alert('Erro ao buscar cidades. Tente novamente.');
+                });
+        });
+
+        document.getElementById('buscarClima').addEventListener('click', function () {
+            const cidadeId = document.getElementById('cidade-select').value;
+
+            if (!cidadeId) {
+                alert("Selecione uma cidade para continuar.");
+                return;
+            }
+
+            fetch('/climatempo_predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cidadeId: cidadeId })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar previsão.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const weatherTable = document.getElementById('weatherTable');
+                    const tbody = weatherTable.querySelector('tbody');
+                    tbody.innerHTML = '';
+
+                    if (data && data.data && data.data.length > 0) {
+                        data.data.forEach((forecast) => {
+                            const row = document.createElement('tr');
+                            let alerta = '';
+
+                            // Verifica se há previsão de chuva forte e umidade alta
+                            const umidadeAlta = forecast.humidity.max > 80;
+                            const chuvaForte = forecast.text && forecast.text.toLowerCase().includes('chuva');
+
+                            if (chuvaForte && umidadeAlta) {
+                                alerta = '<span class="alerta">Alerta: Chuva forte e umidade alta!</span>';
+                            } else if (chuvaForte) {
+                                alerta = '<span class="alerta">Alerta: Chuva forte!</span>';
+                            } else if (umidadeAlta) {
+                                alerta = '<span class="alerta">Alerta: Umidade alta!</span>';
+                            }
+
+                            row.innerHTML = `
+                                <td>${forecast.date}</td>
+                                <td>${forecast.temperature.min}°C</td>
+                                <td>${forecast.temperature.max}°C</td>
+                                <td>${forecast.humidity.min}% - ${forecast.humidity.max}%</td>
+                                <td>${alerta}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+
+                        weatherTable.style.display = 'table';
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5">Nenhuma previsão encontrada.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar previsão:', error);
+                    alert('Erro ao buscar previsão. Tente novamente.');
+                });
+        });
+    </script>
+</body>
+
+</html>

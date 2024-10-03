@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/form.css') }}">
+    <title>Simulação Agrícola</title>
+</head>
+
+<body>
+    <div id="container">
+        <div class="box">
+            <h1>Simulação Agrícola</h1>
+
+            <br>
+
+            <form method="POST" action="/predict" id="formAgricola">
+
+                <!-- Campo Cultura -->
+                <div class="campos">
+                    <label for="Cultura">Cultura:</label>
+                    <input type="text" id="Cultura" name="Cultura" placeholder="ex: Milho, Soja, Arroz" required><br>
+                </div>
+
+                <!-- Quantidade a ser Plantada -->
+                <div class="campos">
+                    <label for="Quantidade_a_ser_Plantada_Toneladas">Quantidade a ser Plantada (Toneladas):</label>
+                    <input type="number" id="Quantidade_a_ser_Plantada_Toneladas" name="Quantidade_a_ser_Plantada_Toneladas" required><br>
+                </div>
+
+                <!-- Perímetro -->
+                <div class="campos">
+                    <label for="Perimetro">Perímetro do Campo (hectares):</label>
+                    <input type="number" id="Perimetro" name="Perimetro" step="0.1" required><br>
+                </div>
+
+                <!-- Frequência de Irrigação -->
+                <div class="campos">
+                    <label for="Frequencia_Irrigacao">Frequência de Irrigação:</label>
+                    <select id="Frequencia_Irrigacao" name="Frequencia_Irrigacao" required>
+                        <option value="Diária">Diária</option>
+                        <option value="Semanal">Semanal</option>
+                        <option value="Mensal">Mensal</option>
+                    </select><br>
+                </div>
+
+                <!-- Tipo de Solo -->
+                <div class="campos">
+                    <label for="Tipo_Solo">Tipo de Solo:</label>
+                    <select id="Tipo_Solo" name="Tipo_Solo" required>
+                        <option value="Argila">Argila</option>
+                        <option value="Areia">Areia</option>
+                        <option value="Silte">Silte</option>
+                        <option value="Calcário">Calcário</option>
+                        <option value="Aluvial">Aluvial</option>
+                        <option value="Não usar">Não usar</option>
+                    </select><br>
+                </div>
+
+                <!-- Tipo de Irrigação -->
+                <div class="campos">
+                    <label for="Tipo_de_Irrigacao">Tipo de Irrigação:</label>
+                    <select id="Tipo_de_Irrigacao" name="Tipo_de_Irrigacao" required>
+                        <option value="Aspersão">Aspersão</option>
+                        <option value="Sulcos">Sulcos</option>
+                        <option value="Gotejamento">Gotejamento</option>
+                        <option value="Subirrigação">Subirrigação</option>
+                        <option value="Microaspersão">Microaspersão</option>
+                        <option value="Não usar">Não usar</option>
+                    </select><br>
+                </div>
+
+                <!-- Fertilizante -->
+                <div class="campos">
+                    <label for="Fertilizante">Fertilizante:</label>
+                    <select id="Fertilizante" name="Fertilizante" required>
+                        <option value="Nitrogênio">Nitrogênio</option>
+                        <option value="Fósforo">Fósforo</option>
+                        <option value="Composto">Composto</option>
+                        <option value="Orgânico">Orgânico</option>
+                        <option value="Potássio">Potássio</option>
+                        <option value="Nenhum">Nenhum</option>
+                    </select><br>
+                </div>
+
+                <!-- Temperatura Média -->
+                <div class="campos">
+                    <label for="Temperatura_Media">Temperatura Média (ºC):</label>
+                    <input type="number" id="Temperatura_Media" name="Temperatura_Media" required><br>
+                </div>
+
+                <!-- Pragas -->
+                <div class="campos">
+                    <label for="Pragas">Pragas:</label>
+                    <select id="Pragas" name="Pragas" required>
+                        <option value="Fungos">Fungos</option>
+                        <option value="Insetos">Insetos</option>
+                        <option value="Ferrugem">Ferrugem</option>
+                        <option value="Nenhuma">Nenhuma</option>
+                        <option value="Outras">Outras</option>
+                    </select><br>
+                </div>
+
+                <!-- Rotação de Culturas -->
+                <div class="campos">
+                    <label for="Rotacao_de_Culturas">Rotação de Culturas:</label>
+                    <select id="Rotacao_de_Culturas" name="Rotacao_de_Culturas" required>
+                        <option value="Sim">Sim</option>
+                        <option value="Não">Não</option>
+                    </select><br>
+                </div>
+
+                <!-- Uso de Pesticidas -->
+                <div class="campos">
+                    <label for="Uso_de_Pesticidas">Uso de Pesticidas:</label>
+                    <select id="Uso_de_Pesticidas" name="Uso_de_Pesticidas" required>
+                        <option value="Alto">Alto</option>
+                        <option value="Moderado">Moderado</option>
+                        <option value="Baixo">Baixo</option>
+                        <option value="Nenhum">Nenhum</option>
+                    </select><br>
+                </div>
+
+                <!-- Tecnologia Utilizada -->
+                <div class="campos">
+                    <label for="Tecnologia_Utilizada">Tecnologia Utilizada:</label>
+                    <select id="Tecnologia_Utilizada" name="Tecnologia_Utilizada" required>
+                        <option value="Alto">Alto</option>
+                        <option value="Médio">Médio</option>
+                        <option value="Baixo">Baixo</option>
+                    </select><br>
+                </div>
+
+                <!-- Botão de Envio -->
+                <div class="campos btn">
+                    <input type="submit" value="Prever" class="btnEnviar">
+                </div>
+            </form>
+
+            <br>
+
+            <!-- Exibição do Custo com Fertilizante -->
+            <div class="resultado">
+                <!-- Exibição do Custo com Fertilizante -->
+                <p><strong>Custo estimado com fertilizantes (levando em consideração perímetro, tipo de fertilizante e toneladas a ser plantada):</strong></p>
+                <h2>{{ custo_fertilizante }}</h2>
+
+                <!-- Exibição dos Resultados da Previsão -->
+                <p><strong>Resultado da Previsão:</strong></p>
+                <h2>{{ previsao }}</h2>
+            </div>
+
+            <br>
+            <a href="/">Executar outra previsão</a>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/form.js') }}"></script>
+</body>
+
+</html>
