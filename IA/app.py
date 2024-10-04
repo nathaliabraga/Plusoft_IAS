@@ -7,17 +7,18 @@ from functions.data_transform import completa_dataframe_agricola
 import google.generativeai as genai
 #from google.cloud import textstospeech, speech
 import os
-#import whisper 
+import whisper 
 import pyttsx3
 import logging
 import cx_Oracle  
 from datetime import datetime
 
 #aqui, nós apenas carregamos o modelo conforme treinado no notebook Tech_Splinter.ipynb
-modelo = pickle.load(open(r'C:\Users\labsfiap\Downloads\PLUSOFT-main\PLUSOFT-main\Sprint3-IA-main\IA\models\random_forest_regressor_model.sav', 'rb'))
+modelo = pickle.load(open(r'C:\Users\daani\Downloads\Plusoft_IAS\IA\models\random_forest_regressor_model.sav', 'rb'))
 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='template/templates')
+
 app.secret_key = '6acad0a12d21148a992875e2cf935d0a06c322eea013daf9' 
 
 
@@ -807,7 +808,7 @@ colunas_modelo = [
 ]
 
 #utilizamos flask 
-app = Flask(__name__, template_folder='template', static_folder='template/assets')
+app = Flask(__name__, template_folder='template/templates', static_folder='template/assets')
 
 
 logging.basicConfig(level=logging.DEBUG)
