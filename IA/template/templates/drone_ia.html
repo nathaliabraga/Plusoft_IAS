@@ -23,7 +23,7 @@
 
     .container {
       display: grid;
-      grid-template-columns: 30% 70%;
+      grid-template-columns: 33% 33% 33%;
       grid-template-rows: 1fr 1fr;
       gap: 10px;
       background-color: #f8fff0;
@@ -69,10 +69,10 @@
       width: 100%;
     }
 
-    .button-clima {
+    .button-clima, .button-previsao-safra {
       background-color: rgb(191, 236, 255);
       height: 350px;
-      width: 45%;
+      width: 100%;
       border: none;
       border-radius: 8px;
       display: flex;
@@ -85,7 +85,7 @@
       box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .button-clima:hover {
+    .button-clima:hover, .button-previsao-safra:hover {
       background-color: #acdcff;
       transform: translateY(-5px);
       box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
@@ -195,33 +195,25 @@
         font-size: 18px;
         color: #333;
     }
-  
+
     .notification p {
         font-size: 14px;
         color: #555;
     }
 
-    /* Painel Inferior */
     .container-bottom {
-        background-color: #e0ffe0;
-        border-radius: 8px;
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-        flex-direction: column;
+      background-color: #e0ffe0;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+      flex-direction: column;
     }
 
-    .container-bottom-text {
-      font-size: 18px;
-      color: #333;
-      text-align: center;
-    }
-
-    /* Estilização dos Botões no Painel Inferior Direito e Esquerdo */
     .buttons-row {
       display: flex;
       justify-content: space-around;
@@ -263,6 +255,10 @@
       color: #333;
     }
 
+    .alerta {
+      color: red;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -270,151 +266,275 @@
     <!-- Painel esquerdo -->
     <div class="left-panel">
       <div class="buttons-row-clima">
-        <button class="button-clima">
-          <a href="/previsao_clima">
-            <img src="/static/img/clima.png" alt="Clima" style="width:150px; height:130px;">
-            <br>
-            <span class="text-blue-clima">Clima</span>
-          </a>
-        </button>
+        <!-- Caixinha de Clima -->
+        <div class="button-clima">
+          <h1>Previsão do Clima</h1>
+          <form id="cidadeForm">
+              <label for="cidade">Digite o nome da cidade:</label>
+              <input type="text" id="cidade-input" placeholder="Ex: São Paulo">
+              <button type="button" id="buscarCidades">Buscar Cidades</button>
+          </form>
 
-        <button class="button-clima">
-          <a href="/drone_ia">
+          <select id="cidade-select" style="display:none;">
+              <!-- As opções de cidades serão inseridas aqui -->
+          </select>
+          <button type="button" id="buscarClima" style="display:none;">Buscar Previsão</button>
+
+          <div id="weatherResult">
+            <table id="weatherTable" style="display:none;">
+              <thead>
+                  <tr>
+                      <th>Data</th>
+                      <th>Temperatura Mínima</th>
+                      <th>Temperatura Máxima</th>
+                      <th>Umidade</th>
+                      <th>Alerta</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <!-- API Data will be inserted here -->
+              </tbody>
+          </table>
+      </div>
+    </div>
+
+    <!-- Caixinha de Cronograma -->
+    <div class="button-clima">
+        <a href="/cronograma">
             <img src="/static/img/botanical.png" alt="Cronograma" style="width:150px; height:150px;">
             <br>
             <span class="text-blue-clima">Cronograma</span>
-          </a>
+        </a>
+    </div>
+
+    <!-- Caixinha de Previsão de Safra (Nova) -->
+    <div class="button-previsao-safra">
+        <a href="/previsao_safra">
+            <img src="/static/img/farming.png" alt="Previsão de Safra" style="width:150px; height:150px;">
+            <br>
+            <span class="text-blue-clima">Previsão de Safra</span>
+        </a>
+    </div>
+  </div>
+</div>
+
+<!-- Painel direito -->
+<div class="right-panel">
+  <div class="container-drone-notifications">
+    <!-- Container do Drone -->
+    <div class="container-drone">
+      <div class="drone-section">
+        <span>Monitoramento por Drone</span>
+        <br>
+        <br>
+        <img src="/static/img/drone_verde.png" alt="Drone">
+      </div>
+
+      <div class="text-section-drone">
+        <a href="/analise_pragas" class="pragas">Pragas</a>
+        <span class="progress-text-drone">Em Progresso</span>
+        <span class="problema-text-drone">0 problemas</span>
+        <br>
+        <a href="/upload" class="doencas">Doenças</a>
+        <span class="progress-text-drone">Em Progresso</span>
+        <span class="problema-text-drone">2 problemas</span>
+        <br>
+        <a href="/queimadas" class="queimadas">Queimadas</a>
+        <span class="progress-text-drone">Em Progresso</span>
+        <span class="problema-text-drone">0 problemas</span>
+      </div>
+    </div>
+
+    <!-- Novo Container de Notificações -->
+    <div class="container-notifications">
+      <div class="notification">
+        <h4>Problema Detectado</h4>
+        <p>O drone identificou uma falha no sistema de sensores. Recomendamos uma verificação completa.</p>
+      </div>
+      <div class="notification">
+        <h4>Atualização de Software</h4>
+        <p>Uma nova atualização de software está disponível para o drone. Verifique as novas funcionalidades.</p>
+      </div>
+      <div class="notification">
+        <h4>Manutenção Programada</h4>
+        <p>O sistema de drones será temporariamente desativado para manutenção no dia 25/09.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Painel Inferior Esquerdo -->
+<div class="left-panel-bottom">
+    <div class="container-bottom">
+      <!-- Primeira Linha de Botões -->
+      <div class="buttons-row">
+        <button class="button-service">
+          <img src="/static/img/financeiro.png" alt="Serviço 1">
+          <a href="/financeiro" class="service-name">Financeiro</a>
+        </button>
+        <button class="button-service">
+          <img src="/static/img/jobb.png" alt="Serviço 2">
+          <a href="/oportunidades" class="service-name">Oportunidades</a>
+        </button>
+        <button class="button-service">
+          <img src="/static/img/report.png" alt="Serviço 3">
+          <a href="/relatorios" class="service-name">Relatórios</a>
+        </button>
+      </div>
+      <!-- Segunda Linha de Botões -->
+      <div class="buttons-row">
+        <button class="button-service">
+          <img src="/static/img/automacao.png" alt="Serviço 4">
+          <a href="/automacao" class="service-name">Automação</a>
+        </button>
+        <button class="button-service">
+          <img src="/static/img/chatbot.png" alt="Serviço 5">
+          <a href="/chatbot" class="service-name">ChatBot</a>
+        </button>
+        <button class="button-service">
+          <img src="/static/img/id-card.png" alt="Serviço 6">
+          <a href="/funcionarios" class="service-name">Funcionários</a>
         </button>
       </div>
     </div>
+  </div>
 
-    <!-- Painel direito -->
-    <div class="right-panel">
-      <div class="container-drone-notifications">
-        <!-- Container do Drone -->
-        <div class="container-drone">
-          <div class="drone-section">
-            <span>Monitoramento por Drone</span>
-            <br>
-            <br>
-            <img src="/static/img/drone_verde.png" alt="Drone">
-          </div>
+<!-- Painel Inferior Direito -->
+<div class="right-panel-bottom">
+  <div class="container-bottom">
+    <!-- Primeira Linha de Botões -->
+    <div class="buttons-row">
+      <button class="button-service">
+        <img src="/static/img/agriculture.png" alt="Serviço 1">
+        <a href="/areas_plantio" class="service-name">Gerenciar Fazenda</a>
+      </button>
+      <button class="button-service">
+        <img src="/static/img/checklist.png" alt="Serviço 2">
+        <a href="/logistica" class="service-name">Logística</a>
+      </button>
+      <button class="button-service">
+        <img src="/static/img/farming.png" alt="Serviço 3">
+        <a href="/plantacao" class="service-name">Plantação</a>
+      </button>
+    
+      <button class="button-service">
+        <img src="/static/img/tractor.png" alt="Serviço 4">
+        <a href="/equipamentos" class="service-name">Equipamentos</a>
+      </button>
+      <button class="button-service">
+        <img src="/static/img/insumos.png" alt="Serviço 5">
+        <a href="/estoque" class="service-name">Estoque</a>
+      </button>
 
-          <div class="text-section-drone">
-            <a href="/analise_pragas" class="pragas">Pragas</a>
-            <span class="progress-text-drone">Em Progresso</span>
-            <span class="problema-text-drone">0 problemas</span>
-            <br>
-            <a href="/upload" class="doencas">Doenças</a>
-            <span class="progress-text-drone">Em Progresso</span>
-            <span class="problema-text-drone">2 problemas</span>
-            <br>
-            <a href="/queimadas" class="queimadas">Queimadas</a>
-            <span class="progress-text-drone">Em Progresso</span>
-            <span class="problema-text-drone">0 problemas</span>
-          </div>
-        </div>
-
-        <!-- Novo Container de Notificações -->
-        <div class="container-notifications">
-          <div class="notification">
-            <h4>Problema Detectado</h4>
-            <p>O drone identificou uma falha no sistema de sensores. Recomendamos uma verificação completa.</p>
-          </div>
-          <div class="notification">
-            <h4>Atualização de Software</h4>
-            <p>Uma nova atualização de software está disponível para o drone. Verifique as novas funcionalidades.</p>
-          </div>
-          <div class="notification">
-            <h4>Manutenção Programada</h4>
-            <p>O sistema de drones será temporariamente desativado para manutenção no dia 25/09.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Painel Inferior Esquerdo -->
-    <div class="left-panel-bottom">
-        <div class="container-bottom">
-          <!-- Primeira Linha de Botões -->
-          <div class="buttons-row">
-            <button class="button-service">
-              <img src="/static/img/financeiro.png" alt="Serviço 1">
-              <a href="/financeiro" class="service-name">Financeiro</a>
-            </button>
-            <button class="button-service">
-              <img src="/static/img/jobb.png" alt="Serviço 2">
-              <a href="/oportunidades" class="service-name">Oportunidades</a>
-            </button>
-            <button class="button-service">
-              <img src="/static/img/report.png" alt="Serviço 3">
-              <a href="/relatorios" class="service-name">Relatorios</a>
-            </button>
-          </div>
-          <!-- Segunda Linha de Botões -->
-          <div class="buttons-row">
-            <button class="button-service">
-              <img src="/static/img/automacao.png" alt="Serviço 4">
-              <a href="/automacao" class="service-name">Automação</a>
-            </button>
-            <button class="button-service">
-              <img src="/static/img/chatbot.png" alt="Serviço 5">
-              <a href="/chatbot" class="service-name">ChatBot</a>
-            </button>
-            <button class="button-service">
-              <img src="/static/img/id-card.png" alt="Serviço 6">
-              <a href="/funcionarios" class="service-name">Funcionarios</a>
-            </button>
-          </div>
-        </div>
-      </div>
-
-
-
-
-
-    <!-- Painel Inferior Direito -->
-    <div class="right-panel-bottom">
-      <div class="container-bottom">
-        <!-- Primeira Linha de Botões -->
-        <div class="buttons-row">
-          <button class="button-service">
-            <img src="/static/img/agriculture.png" alt="Serviço 1">
-            <a href="/areas_plantio" class="service-name">Gerenciar Fazenda</a>
-          </button>
-          <button class="button-service">
-            <img src="/static/img/checklist.png" alt="Serviço 2">
-            <a href="/logistica" class="service-name">Logistica</a>
-          </button>
-          <button class="button-service">
-            <img src="/static/img/farming.png" alt="Serviço 3">
-            <a href="/plantacao" class="service-name">Planção</a>
-          </button>
-        
-          <button class="button-service">
-            <img src="/static/img/tractor.png" alt="Serviço 4">
-            <a href="/equipamentos" class="service-name">Equipamentos</a>
-          </button>
-          <button class="button-service">
-            <img src="/static/img/insumos.png" alt="Serviço 5">
-            <a href="/estoque" class="service-name">Estoque</a>
-          </button>
-
-          <button class="button-service">
-            <img src="/static/img/gloves.png" alt="Serviço 6">
-            <a href="/atividades" class="service-name">Atividades</a>
-          </button>
-          
-        </div>
+      <button class="button-service">
+        <img src="/static/img/gloves.png" alt="Serviço 6">
+        <a href="/atividades" class="service-name">Atividades</a>
+      </button>
     </div>
   </div>
+</div>
+</div>
+
+<script>
+  document.getElementById('buscarCidades').addEventListener('click', function () {
+      const cidade = document.getElementById('cidade-input').value.trim();
+
+      if (!cidade) {
+          alert("Por favor, insira o nome da cidade.");
+          return;
+      }
+
+      fetch('/buscar_cidades', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cidade: cidade })
+      })
+          .then(response => response.json())
+          .then(data => {
+              const cidadeSelect = document.getElementById('cidade-select');
+              cidadeSelect.innerHTML = '';
+
+              if (data.cidades && data.cidades.length > 0) {
+                  data.cidades.forEach(cidade => {
+                      const option = document.createElement('option');
+                      option.value = cidade.id;
+                      option.textContent = `${cidade.name}, ${cidade.state}`;
+                      cidadeSelect.appendChild(option);
+                  });
+
+                  cidadeSelect.style.display = 'block';
+                  document.getElementById('buscarClima').style.display = 'block';
+              } else {
+                  alert(data.error || "Nenhuma cidade encontrada.");
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao buscar cidades:', error);
+              alert('Erro ao buscar cidades. Tente novamente.');
+          });
+  });
+
+  document.getElementById('buscarClima').addEventListener('click', function () {
+      const cidadeId = document.getElementById('cidade-select').value;
+
+      if (!cidadeId) {
+          alert("Selecione uma cidade para continuar.");
+          return;
+      }
+
+      fetch('/climatempo_predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cidadeId: cidadeId })
+      })
+      .then(response => {
+              if (!response.ok) {
+                  throw new Error('Erro ao buscar previsão.');
+              }
+              return response.json();
+          })
+          .then(data => {
+              const weatherTable = document.getElementById('weatherTable');
+              const tbody = weatherTable.querySelector('tbody');
+              tbody.innerHTML = '';
+
+              if (data && data.data && data.data.length > 0) {
+                  data.data.forEach((forecast) => {
+                      const row = document.createElement('tr');
+                      let alerta = '';
+
+                      // Verifica se há previsão de chuva forte e umidade alta
+                      const umidadeAlta = forecast.humidity.max > 80;
+                      const chuvaForte = forecast.text && forecast.text.toLowerCase().includes('chuva');
+
+                      if (chuvaForte && umidadeAlta) {
+                          alerta = '<span class="alerta">Alerta: Chuva forte e umidade alta!</span>';
+                      } else if (chuvaForte) {
+                          alerta = '<span class="alerta">Alerta: Chuva forte!</span>';
+                      } else if (umidadeAlta) {
+                          alerta = '<span class="alerta">Alerta: Umidade alta!</span>';
+                      }
+
+                      row.innerHTML = `
+                          <td>${forecast.date}</td>
+                          <td>${forecast.temperature.min}°C</td>
+                          <td>${forecast.temperature.max}°C</td>
+                          <td>${forecast.humidity.min}% - ${forecast.humidity.max}%</td>
+                          <td>${alerta}</td>
+                      `;
+                      tbody.appendChild(row);
+                  });
+
+                  weatherTable.style.display = 'table';
+              } else {
+                  tbody.innerHTML = '<tr><td colspan="5">Nenhuma previsão encontrada.</td></tr>';
+              }
+          })
+          .catch(error => {
+              console.error('Erro ao buscar previsão:', error);
+              alert('Erro ao buscar previsão. Tente novamente.');
+          });
+  });
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
-

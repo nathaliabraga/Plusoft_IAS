@@ -774,12 +774,90 @@ atividades_concluidas = [
 ]
 
 
-
-
-
-@app.route('/drone_ia')
+@app.route('/drone_ia', methods=['GET', 'POST'])
 def drone_ia():
+    if request.method == 'POST':
+        cidade = request.form.get('cidade-input')  # Obtém a cidade do formulário de drone_ia.html
+        if not cidade:
+            flash('Por favor, insira o nome da cidade.', 'error')
+            return redirect(url_for('drone_ia'))
+
+        # Buscar a cidade
+        try:
+            url_cidade = f"http://apiadvisor.climatempo.com.br/api/v1/locale/city?name={cidade}&token={CLIMATEMPO_API_KEY}"
+            response_cidade = requests.get(url_cidade)
+            response_cidade.raise_for_status()
+            cidades_data = response_cidade.json()
+
+            if isinstance(cidades_data, list) and len(cidades_data) > 0:
+                cidades = [{"id": c['id'], "name": c['name'], "state": c['state'], "country": c['country']} for c in cidades_data]
+                
+                # Seleciona a primeira cidade para pegar o ID (ajuste conforme necessário)
+                cidade_id = cidades[0]['id']
+                
+                # Buscar a previsão do tempo para a cidade selecionada
+                previsao_data = climatempo_predict(cidade_id)
+                
+                # Renderizar a página com as informações da cidade e previsão do clima
+                return render_template('drone_ia.html', cidades=cidades, previsao=previsao_data)
+
+            else:
+                flash('Nenhuma cidade encontrada.', 'error')
+                return redirect(url_for('drone_ia'))
+
+        except requests.exceptions.RequestException as e:
+            flash(f"Erro ao buscar cidades: {str(e)}", 'error')
+            return redirect(url_for('drone_ia'))
+
     return render_template('drone_ia.html')
+
+# Função para obter a previsão do tempo
+def climatempo_predict(cidade_id):
+    try:
+        # URL para buscar previsão de 15 dias
+        url_previsao = f"http://apiadvisor.climatempo.com.br/api/v1/forecast/locale/{cidade_id}/days/15?token={CLIMATEMPO_API_KEY}"
+        response_previsao = requests.get(url_previsao)
+        response_previsao.raise_for_status()
+        previsao_data = response_previsao.json()
+
+        # Verifique se os dados foram retornados corretamente
+        if not previsao_data or 'data' not in previsao_data:
+            return {"error": "Erro ao obter dados da previsão do tempo."}
+
+        return previsao_data['data']
+
+    except requests.exceptions.RequestException as e:
+        print(f"Erro na requisição: {str(e)}")
+        return {"error": f"Erro ao buscar previsão: {str(e)}"}
+
+
+def climatempo_predict():
+    try:
+        data = request.get_json()
+        cidade_id = data.get('cidadeId')
+        
+        if not cidade_id:
+            return jsonify({"error": "ID da cidade não fornecido."}), 400
+
+        # URL para buscar previsão de 15 dias
+        url_previsao = f"http://apiadvisor.climatempo.com.br/api/v1/forecast/locale/{cidade_id}/days/15?token={CLIMATEMPO_API_KEY}"
+        print(f"URL da previsão: {url_previsao}")  # Log para verificar a URL gerada
+
+        response_previsao = requests.get(url_previsao)
+        response_previsao.raise_for_status()
+        previsao_data = response_previsao.json()
+
+        # Verifique se os dados foram retornados corretamente
+        if not previsao_data or 'data' not in previsao_data:
+            return jsonify({"error": "Erro ao obter dados da previsão do tempo."}), 500
+
+        # Retorna a previsão do tempo para o front-end
+        return jsonify({"data": previsao_data['data']})
+
+    except requests.exceptions.RequestException as e:
+        print(f"Erro na requisição: {str(e)}")
+        return jsonify({"error": f"Erro ao buscar previsão: {str(e)}"}), 500
+
 
 
 
@@ -905,66 +983,6 @@ def predict():
     
     except Exception as e:
         return str(e), 400
-
-#rota para previsão do clima usando API Climatempo
-@app.route('/previsao_clima', methods=['GET'])
-def previsao_clima():
-    return render_template('previsao_clima.html')
-
-#buscar cidades
-@app.route('/buscar_cidades', methods=['POST'])
-def buscar_cidades():
-    try:
-        data = request.get_json()  # Recebe o JSON corretamente
-        cidade = data.get('cidade')  # Obtém a cidade do JSON
-        if not cidade:
-            return jsonify({"error": "Nome da cidade não fornecido."}), 400
-
-        # URL para buscar cidades
-        url_cidade = f"http://apiadvisor.climatempo.com.br/api/v1/locale/city?name={cidade}&token={CLIMATEMPO_API_KEY}"
-        response_cidade = requests.get(url_cidade)
-        response_cidade.raise_for_status()
-        cidades_data = response_cidade.json()
-
-        # Verificação se a resposta contém dados válidos
-        if isinstance(cidades_data, list) and len(cidades_data) > 0:
-            cidades = [{"id": c['id'], "name": c['name'], "state": c['state'], "country": c['country']} for c in cidades_data]
-            return jsonify({"cidades": cidades})
-        else:
-            return jsonify({"error": "Nenhuma cidade encontrada."}), 404
-
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao buscar cidades: {str(e)}")
-        return jsonify({"error": f"Erro ao buscar cidades: {str(e)}"}), 500
-
-# Previsão do clima
-@app.route('/climatempo_predict', methods=['POST'])
-def climatempo_predict():
-    try:
-        data = request.get_json()
-        cidade_id = data.get('cidadeId')
-        
-        if not cidade_id:
-            return jsonify({"error": "ID da cidade não fornecido."}), 400
-
-        # URL para buscar previsão de 15 dias
-        url_previsao = f"http://apiadvisor.climatempo.com.br/api/v1/forecast/locale/{cidade_id}/days/15?token={CLIMATEMPO_API_KEY}"
-        print(f"URL da previsão: {url_previsao}")  # Log para verificar a URL gerada
-
-        response_previsao = requests.get(url_previsao)
-        response_previsao.raise_for_status()
-        previsao_data = response_previsao.json()
-
-        # Verifique se os dados foram retornados corretamente
-        if not previsao_data or 'data' not in previsao_data:
-            return jsonify({"error": "Erro ao obter dados da previsão do tempo."}), 500
-
-        # Retorna a previsão do tempo para o front-end
-        return jsonify({"data": previsao_data['data']})
-
-    except requests.exceptions.RequestException as e:
-        print(f"Erro na requisição: {str(e)}")
-        return jsonify({"error": f"Erro ao buscar previsão: {str(e)}"}), 500
 
 
 #funcao para api gemini/chatbot
