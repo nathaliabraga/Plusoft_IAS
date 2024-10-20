@@ -773,92 +773,47 @@ atividades_concluidas = [
     
 ]
 
+#API_KEY_OPENWEATHER = 'feb621f31616567d7b527508213b0860'
+
+def obter_previsao(cidade):
+    # URL base para a API OpenWeather
+    BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+    API_KEY_OPENWEATHER = 'feb621f31616567d7b527508213b0860'
+    # Monta a URL com base na cidade e na chave de API
+    request_url = f"{BASE_URL}?appid={API_KEY_OPENWEATHER}&q={cidade}&lang=pt_br"
+
+    # Faz a requisição para a API
+    response = requests.get(request_url)
+    
+    # Verifica se a requisição foi bem-sucedida
+    if response.status_code == 200:
+        data = response.json()
+        # Extrai a descrição do tempo e a temperatura
+        weather = data['weather'][0]['description']
+        temperature = round(data["main"]["temp"] - 273.15, 2)  # Convertendo de Kelvin para Celsius
+        return {
+            "descricao": weather,
+            "temperatura": temperature
+        }
+    else:
+        return None
 
 @app.route('/drone_ia', methods=['GET', 'POST'])
 def drone_ia():
     if request.method == 'POST':
-        cidade = request.form.get('cidade-input')  # Obtém a cidade do formulário de drone_ia.html
+        cidade = request.form.get('cidade')  # Obtém a cidade do formulário de drone_ia.html
         if not cidade:
             flash('Por favor, insira o nome da cidade.', 'error')
             return redirect(url_for('drone_ia'))
 
-        # Buscar a cidade
-        try:
-            url_cidade = f"http://apiadvisor.climatempo.com.br/api/v1/locale/city?name={cidade}&token={CLIMATEMPO_API_KEY}"
-            response_cidade = requests.get(url_cidade)
-            response_cidade.raise_for_status()
-            cidades_data = response_cidade.json()
-
-            if isinstance(cidades_data, list) and len(cidades_data) > 0:
-                cidades = [{"id": c['id'], "name": c['name'], "state": c['state'], "country": c['country']} for c in cidades_data]
-                
-                # Seleciona a primeira cidade para pegar o ID (ajuste conforme necessário)
-                cidade_id = cidades[0]['id']
-                
-                # Buscar a previsão do tempo para a cidade selecionada
-                previsao_data = climatempo_predict(cidade_id)
-                
-                # Renderizar a página com as informações da cidade e previsão do clima
-                return render_template('drone_ia.html', cidades=cidades, previsao=previsao_data)
-
-            else:
-                flash('Nenhuma cidade encontrada.', 'error')
-                return redirect(url_for('drone_ia'))
-
-        except requests.exceptions.RequestException as e:
-            flash(f"Erro ao buscar cidades: {str(e)}", 'error')
-            return redirect(url_for('drone_ia'))
+        # Buscar a previsão do tempo
+        previsao_data = obter_previsao(cidade)
+        if previsao_data:
+            return jsonify({"previsao": previsao_data})
+        else:
+            return jsonify({"error": "Não foi possível obter a previsão. Verifique se o nome da cidade está correto."}), 400
 
     return render_template('drone_ia.html')
-
-# Função para obter a previsão do tempo
-def climatempo_predict(cidade_id):
-    try:
-        # URL para buscar previsão de 15 dias
-        url_previsao = f"http://apiadvisor.climatempo.com.br/api/v1/forecast/locale/{cidade_id}/days/15?token={CLIMATEMPO_API_KEY}"
-        response_previsao = requests.get(url_previsao)
-        response_previsao.raise_for_status()
-        previsao_data = response_previsao.json()
-
-        # Verifique se os dados foram retornados corretamente
-        if not previsao_data or 'data' not in previsao_data:
-            return {"error": "Erro ao obter dados da previsão do tempo."}
-
-        return previsao_data['data']
-
-    except requests.exceptions.RequestException as e:
-        print(f"Erro na requisição: {str(e)}")
-        return {"error": f"Erro ao buscar previsão: {str(e)}"}
-
-
-def climatempo_predict():
-    try:
-        data = request.get_json()
-        cidade_id = data.get('cidadeId')
-        
-        if not cidade_id:
-            return jsonify({"error": "ID da cidade não fornecido."}), 400
-
-        # URL para buscar previsão de 15 dias
-        url_previsao = f"http://apiadvisor.climatempo.com.br/api/v1/forecast/locale/{cidade_id}/days/15?token={CLIMATEMPO_API_KEY}"
-        print(f"URL da previsão: {url_previsao}")  # Log para verificar a URL gerada
-
-        response_previsao = requests.get(url_previsao)
-        response_previsao.raise_for_status()
-        previsao_data = response_previsao.json()
-
-        # Verifique se os dados foram retornados corretamente
-        if not previsao_data or 'data' not in previsao_data:
-            return jsonify({"error": "Erro ao obter dados da previsão do tempo."}), 500
-
-        # Retorna a previsão do tempo para o front-end
-        return jsonify({"data": previsao_data['data']})
-
-    except requests.exceptions.RequestException as e:
-        print(f"Erro na requisição: {str(e)}")
-        return jsonify({"error": f"Erro ao buscar previsão: {str(e)}"}), 500
-
-
 
 
 if __name__ == '__main__':
@@ -891,8 +846,8 @@ app = Flask(__name__, template_folder='template/templates', static_folder='templ
 
 logging.basicConfig(level=logging.DEBUG)
 
-#chave da API do Climatempo
-CLIMATEMPO_API_KEY = 'f0ab6c560f54ced16999b37ae243bed5'
+#chave da API do Openweather
+
 
 #chave da API do Gemini
 GEMINI_API_KEY = 'AIzaSyCXJp2GnIVz6d7oBHeXkYUD99vZkuVYzfA'
@@ -986,33 +941,32 @@ def predict():
 
 
 #funcao para api gemini/chatbot
-@app.route('/chatbot_gemini', methods=['POST'])
-def chatbot_gemini():
-    try:
-        # Pega a pergunta do usuário enviada como JSON
-        data = request.json
-        prompt = data.get('message')  # Obtém a mensagem enviada pelo usuário
-
-        # Inicializando o modelo e começando o chat
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        chat = model.start_chat(history=[])
-
-        # Envia a mensagem do usuário e obtém a resposta
-        response = chat.send_message(prompt)
-
-        # Retorna a resposta como JSON
-        return jsonify({"response": response.text})
-
-    except Exception as e:
-        # Exibe o erro no console para depuração
-        print(f"Erro ao conectar ao Google Gemini: {str(e)}")
-        # Retorna uma mensagem de erro para o front-end
-        return jsonify({"error": f"Erro ao conectar ao Google Gemini: {str(e)}"}), 500
-
-@app.route('/chat_gemini', methods=['GET'])
+# Unificação da rota para lidar com GET e POST
+@app.route('/chat_gemini', methods=['GET', 'POST'])
 def chat_gemini():
-    # Renderiza o template HTML para o chat
-    return render_template('chat_gemini.html')
+    if request.method == 'POST':
+        try:
+            # Pega a pergunta do usuário enviada como JSON
+            data = request.json
+            prompt = data.get('message')  # Obtém a mensagem enviada pelo usuário
+
+            # Inicializando o modelo e começando o chat
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            chat = model.start_chat(history=[])
+
+            # Envia a mensagem do usuário e obtém a resposta
+            response = chat.send_message(prompt)
+
+            # Retorna a resposta como JSON
+            return jsonify({"response": response.text})
+
+        except Exception as e:
+            # Exibe o erro no console para depuração
+            print(f"Erro ao conectar ao Google Gemini: {str(e)}")
+            # Retorna uma mensagem de erro para o front-end
+            return jsonify({"error": f"Erro ao conectar ao Google Gemini: {str(e)}"}), 500
+    else:
+        return render_template('chat_gemini.html')
 
  # importamos la em cima Whisper para Speech-to-Text
 
@@ -1046,7 +1000,6 @@ def send_to_gemini(message):
     except Exception as e:
         print(f"Erro ao conectar ao Gemini: {str(e)}")
         return "Erro ao conectar ao Gemini."
-# Função para converter texto em fala usando pyttsx3
 # Função para converter texto em fala usando pyttsx3
 @app.route('/tts', methods=['POST'])
 def text_to_speech():
