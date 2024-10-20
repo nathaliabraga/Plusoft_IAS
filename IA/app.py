@@ -969,7 +969,8 @@ def chat_gemini():
         return render_template('chat_gemini.html')
 
  # importamos la em cima Whisper para Speech-to-Text
-
+if __name__ == '__main__':
+        app.run(debug=True, port=8080)
 # Adicionando uma rota para transcrição de áudio usando Whisper
 @app.route('/chat_gemini/listen', methods=['POST'])
 def listen():

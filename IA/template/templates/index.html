@@ -214,13 +214,14 @@
       flex-direction: column;
     }
 
-    .buttons-row {
-      display: flex;
-      justify-content: space-around;
-      gap: 10px;
-      width: 100%;
-      margin-bottom: 10px;
-    }
+  .buttons-row {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+  flex-wrap: wrap;  /* Torna a linha flexível para evitar corte */
+  } 
 
     .button-service {
       background-color: rgba(63, 159, 95, 0.582);
