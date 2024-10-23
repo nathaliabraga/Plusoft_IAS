@@ -1,15 +1,9 @@
-- Flask (pip install flask)
-- Pandas (pip install pandas)
-- Numpy (pip install numpy)
-- Requests(pip install requests)
-- Sklearn (pip install scikit-learn==1.2.2)
-- Google.generativeai (pip install google.generativeai)
-- Pickle (pip install pickle)
-
-
--pip uninstall whisper
--pip install whisper
-
-
-
--pip install --upgrade google-cloud google-cloud-texttospeech
+Flask
+pandas
+numpy
+requests
+scikit-learn==1.2.2
+google-generativeai
+google-cloud-texttospeech
+google-cloud-speech
+gunicorn
