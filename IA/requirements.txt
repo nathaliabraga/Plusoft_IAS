@@ -1,9 +1,0 @@
-Flask
-pandas
-numpy
-requests
-scikit-learn==1.2.2
-google-generativeai
-google-cloud-texttospeech
-google-cloud-speech
-gunicorn
