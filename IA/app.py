@@ -5,7 +5,7 @@ import requests
 from flask import Flask, request, redirect, render_template, jsonify, url_for,flash
 from functions.data_transform import completa_dataframe_agricola
 import google.generativeai as genai
-#from google.cloud import textstospeech, speech
+from google.cloud import texttospeech, speech
 import os
 import whisper 
 import pyttsx3
@@ -17,7 +17,8 @@ from datetime import datetime
 modelo = pickle.load(open(r'C:\Users\daani\Downloads\Plusoft_IAS\IA\models\random_forest_regressor_model.sav', 'rb'))
 
 
-app = Flask(__name__, template_folder='template/templates')
+#utilizamos flask 
+app = Flask(__name__, template_folder='template/templates', static_folder='template/assets')
 
 app.secret_key = '6acad0a12d21148a992875e2cf935d0a06c322eea013daf9' 
 
@@ -816,9 +817,6 @@ def drone_ia():
     return render_template('drone_ia.html')
 
 
-if __name__ == '__main__':
-        app.run(debug=True, port=8080)
-
 
 
 #definimos as colunas
@@ -840,8 +838,7 @@ colunas_modelo = [
  'Estacao_Primavera' 'Estacao_Verão'
 ]
 
-#utilizamos flask 
-app = Flask(__name__, template_folder='template/templates', static_folder='template/assets')
+
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -850,7 +847,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 #chave da API do Gemini
-GEMINI_API_KEY = 'AIzaSyCXJp2GnIVz6d7oBHeXkYUD99vZkuVYzfA'
+GEMINI_API_KEY = 'AIzaSyCuxi0-vATijO6HuyKF1munlMEf6gotszg'
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Função para calcular custo de fertilizantes
@@ -969,8 +966,7 @@ def chat_gemini():
         return render_template('chat_gemini.html')
 
  # importamos la em cima Whisper para Speech-to-Text
-if __name__ == '__main__':
-        app.run(debug=True, port=8080)
+
 # Adicionando uma rota para transcrição de áudio usando Whisper
 @app.route('/chat_gemini/listen', methods=['POST'])
 def listen():
@@ -1033,4 +1029,5 @@ def text_to_speech():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=8080)
+
