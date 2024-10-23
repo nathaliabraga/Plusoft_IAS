@@ -14,8 +14,15 @@ import cx_Oracle
 from datetime import datetime
 
 #aqui, nós apenas carregamos o modelo conforme treinado no notebook Tech_Splinter.ipynb
-modelo = pickle.load(open(r'IA\models\random_forest_regressor_model.sav', 'rb'))
+import os
+import pickle
 
+# Ajustar o caminho para ser relativo à localização do script
+modelo_path = os.path.join(os.path.dirname(__file__), 'models', 'random_forest_regressor_model.sav')
+
+# Carregar o modelo
+with open(modelo_path, 'rb') as model_file:
+    modelo = pickle.load(model_file)
 
 #utilizamos flask 
 app = Flask(__name__, template_folder='template/templates', static_folder='template/assets')
