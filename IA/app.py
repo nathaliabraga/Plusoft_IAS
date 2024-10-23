@@ -14,7 +14,7 @@ import cx_Oracle
 from datetime import datetime
 
 #aqui, nós apenas carregamos o modelo conforme treinado no notebook Tech_Splinter.ipynb
-modelo = pickle.load(open(r'C:\Users\daani\Downloads\Plusoft_IAS\IA\models\random_forest_regressor_model.sav', 'rb'))
+modelo = pickle.load(open(r'IA\models\random_forest_regressor_model.sav', 'rb'))
 
 
 #utilizamos flask 
