@@ -99,9 +99,9 @@ funcionarios = [
 
 
 # Conexão com o banco de dados Oracle
-#dsn = cx_Oracle.makedsn("oracle.fiap.com.br", 1521, service_name="ORCL")
-#connection = cx_Oracle.connect(user='RM552051', password='140400', dsn=dsn)
-#conn = cx_Oracle.connect(user='RM552051', password='140400', dsn=dsn)
+dsn = cx_Oracle.makedsn("oracle.fiap.com.br", 1521, service_name="ORCL")
+connection = cx_Oracle.connect(user='RM552051', password='140400', dsn=dsn)
+conn = cx_Oracle.connect(user='RM552051', password='140400', dsn=dsn)
 
 # Local para salvar as imagens de upload
 UPLOAD_FOLDER = './static/uploads'
@@ -424,21 +424,23 @@ def listar_equipamentos():
 @app.route('/api/equipamentos', methods=['POST'])
 def add_equipamento():
     data = request.json
-    cursor = conn.cursor()
-     # Validação dos dados
-    nome = data.get('nome')
-    tipo = data.get('tipo')
-    funcoes = data.get('funcoes')
-    marca = data.get('marca')
-    modelo = data.get('modelo')
-    ano = data.get('ano')
-    ultima_manutencao = data.get('ultima_manutencao')
-    proxima_manutencao = data.get('proxima_manutencao')
-
-    if not (nome and tipo and funcoes and marca and modelo and ano and ultima_manutencao and proxima_manutencao):
-        return jsonify({"error": "Dados incompletos"}), 400
-    
+    cursor = None  # Inicializar o cursor
     try:
+        cursor = conn.cursor()  # Abrir o cursor
+
+        # Validação dos dados
+        nome = data.get('nome')
+        tipo = data.get('tipo')
+        funcoes = data.get('funcoes')
+        marca = data.get('marca')
+        modelo = data.get('modelo')
+        ano = data.get('ano')
+        ultima_manutencao = data.get('ultima_manutencao')
+        proxima_manutencao = data.get('proxima_manutencao')
+
+        if not (nome and tipo and funcoes and marca and modelo and ano and ultima_manutencao and proxima_manutencao):
+            return jsonify({"error": "Dados incompletos"}), 400
+
         cursor.execute("""
             INSERT INTO equipamentos (nome, tipo, funcoes, marca, modelo, ano, ultima_manutencao, proxima_manutencao)
             VALUES (:nome, :tipo, :funcoes, :marca, :modelo, :ano, TO_DATE(:ultima_manutencao, 'YYYY-MM-DD'), TO_DATE(:proxima_manutencao, 'YYYY-MM-DD'))
@@ -452,14 +454,17 @@ def add_equipamento():
             'funcoes': funcoes,
             'ultima_manutencao': ultima_manutencao,
             'proxima_manutencao': proxima_manutencao
-            
         })
         conn.commit()
-    
-    
-    except not data:
-        return jsonify({"error": "Dados inválidos"}), 400
-    
+
+    except Exception as e:
+        conn.rollback()  # Caso de erro, desfazer qualquer mudança
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if cursor:
+            cursor.close()  # Fechar o cursor no final, independentemente do sucesso ou falha
+
     # Adicionar novo equipamento à lista em memória
     novo_equipamento = {
         "nome": data.get("nome"),
@@ -476,6 +481,7 @@ def add_equipamento():
     }
     equipamentos.append(novo_equipamento)
     return jsonify({"message": "Equipamento cadastrado com sucesso"}), 201
+
 
 # Rota para excluir equipamento (usando índice na lista como ID)
 @app.route('/api/equipamentos/<int:id>', methods=['DELETE'])
